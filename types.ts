@@ -12,6 +12,11 @@ export interface Solution {
   timestamp: number;
 }
 
+export interface ChatMessage {
+  role: 'user' | 'model';
+  text: string;
+}
+
 export enum AppStatus {
   IDLE = 'IDLE',
   UPLOADING = 'UPLOADING',
