@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
-import { UploadedFile } from "../types";
+import { UploadedFile } from "../types.ts";
 
 // Types MIME officiellement supportés par Gemini pour les documents
 const SUPPORTED_MIME_TYPES = [
@@ -20,7 +20,6 @@ export const solveExerciseWithContext = async (
 ): Promise<string> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-  // Filtrer les cours pour ne garder que ceux supportés par l'API en inlineData
   const supportedCourses = courses.filter(f => SUPPORTED_MIME_TYPES.includes(f.type));
   const unsupportedCourseNames = courses.filter(f => !SUPPORTED_MIME_TYPES.includes(f.type)).map(f => f.name);
 
@@ -44,34 +43,20 @@ export const solveExerciseWithContext = async (
   const systemInstruction = `Tu es un expert en pédagogie et un ingénieur senior en développement web. 
 Ta mission est de résoudre l'exercice fourni en te basant RIGOUREUSEMENT sur les documents de cours attachés.
 
-RÈGLES CRUCIALES DE RÉPONSE (À RESPECTER SCRUPULEUSEMENT) :
-
-1. LANGUE : 
-   - Détecte la langue de l'énoncé de l'exercice. 
-   - La section "# 1. Solution" doit être rédigée INTÉGRALEMENT dans la même langue que l'exercice.
-   - La section "# 2. Explications détaillées" doit être rédigée en français.
-
-2. STRUCTURE ET SÉPARATION : 
-   - Ne mélange JAMAIS les explications avec la résolution.
-   - # 1. Solution : Donne la résolution directe et propre. Suis la numérotation et l'ordre de l'exercice original.
-   - # 2. Explications détaillées : Pour CHAQUE question ou tâche résolue dans la première section, fournis une explication pédagogique dédiée, L'UNE APRÈS L'AUTRE, en suivant le même ordre.
-
-3. CONTENU DES EXPLICATIONS :
-   - Pour chaque question, explique la logique de la réponse.
-   - Fais le lien avec les concepts spécifiques mentionnés dans les cours fournis.
-   - Si c'est du développement web, explique les bonnes pratiques ou la syntaxe utilisée.
-
-Note : Si des fichiers Word/PPTX comme ${unsupportedCourseNames.join(', ')} ont été fournis, signale brièvement dans la section explicative que leur contenu binaire n'a pu être lu directement et suggère le format PDF pour les prochaines fois.`;
+RÈGLES CRUCIALES DE RÉPONSE :
+1. LANGUE : Détecte la langue de l'énoncé. # 1. Solution dans la même langue. # 2. Explications en français.
+2. STRUCTURE : # 1. Solution (directe) puis # 2. Explications détaillées.
+3. CONTENU : Explique la logique, fais le lien avec les cours, et détaille les syntaxes si nécessaire.`;
 
   try {
     const response: GenerateContentResponse = await ai.models.generateContent({
-      model: 'gemini-3-pro-preview', // Utilisation du modèle Pro pour un meilleur suivi des instructions séquentielles complexes
+      model: 'gemini-3-pro-preview',
       contents: { 
         parts: [
           ...courseParts,
           { text: `CONTEXTE (Supports de cours) : Voici les documents pédagogiques de référence.` },
           ...exerciseParts,
-          { text: `ÉNONCÉ À RÉSOUDRE : Analyse cet exercice et produis la réponse structurée avec solution puis explications point par point.` }
+          { text: `ÉNONCÉ À RÉSOUDRE : Analyse cet exercice et produis la réponse structurée.` }
         ] 
       },
       config: {
@@ -83,9 +68,6 @@ Note : Si des fichiers Word/PPTX comme ${unsupportedCourseNames.join(', ')} ont 
     return response.text || "Désolé, je n'ai pas pu générer de réponse.";
   } catch (error: any) {
     console.error("Gemini Error:", error);
-    if (error.message?.includes("Unsupported MIME type")) {
-      throw new Error("L'un des fichiers possède un format non supporté par l'IA. Veuillez privilégier le format PDF.");
-    }
     throw new Error("Une erreur est survenue lors de la communication avec l'IA.");
   }
 };

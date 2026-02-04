@@ -1,7 +1,7 @@
 
 import React, { useState, useRef } from 'react';
-import { UploadedFile, AppStatus, Solution } from './types';
-import { solveExerciseWithContext } from './services/gemini';
+import { UploadedFile, AppStatus, Solution } from './types.ts';
+import { solveExerciseWithContext } from './services/gemini.ts';
 
 type ViewState = 'UPLOAD' | 'RESOLUTION';
 
