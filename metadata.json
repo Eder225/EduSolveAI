@@ -1,0 +1,5 @@
+{
+  "name": "EduSolve AI - Plateforme d'Apprentissage Contextuelle",
+  "description": "Une application intelligente permettant d'uploader des supports de cours (PDF, Word, PPTX) et de résoudre des exercices en se basant exclusivement sur le contenu pédagogique fourni, avec une expertise particulière en développement web.",
+  "requestFramePermissions": []
+}
